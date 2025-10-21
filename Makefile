@@ -53,3 +53,9 @@ check:
 	@chmod 600 traefik/config/acme.json
 	@docker network inspect ${TRAEFIK_DOCKER_NETWORK} >/dev/null 2>&1 || (echo "Network ${TRAEFIK_DOCKER_NETWORK} not found" && exit 1)
 	@echo "Configuration is ready to start Traefik"
+	
+config:
+	@$(COMPOSE) config
+
+ps:
+	@$(COMPOSE) ps
