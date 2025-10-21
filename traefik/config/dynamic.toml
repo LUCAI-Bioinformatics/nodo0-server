@@ -15,9 +15,3 @@
     middlewares = ["dashboard_auth"]
     [http.routers.traefik-dashboard.tls]
       certResolver = "leresolver"
-
-  [http.routers.traefik-dashboard-http]
-    rule = "Host(`{{ env `TRAEFIK_DASHBOARD_HOST` }}`)"
-    entryPoints = ["web"]
-    service = "api@internal"
-    middlewares = ["https_redirect"]
