@@ -1,36 +1,63 @@
+################################################################
+# Entrypoints
+################################################################
 [entryPoints]
   [entryPoints.web]
     address = ":80"
+    # Redirigimos todo HTTP → HTTPS (excepto el ACME, ver router abajo)
     [entryPoints.web.http.redirections.entryPoint]
       to = "websecure"
       scheme = "https"
 
   [entryPoints.websecure]
     address = ":443"
+    # TLS se negocia automáticamente cuando haya cert
 
+  # Puerto interno para API/ping/diagnóstico
+  [entryPoints.traefik]
+    address = ":8080"
+
+################################################################
+# Ping (para healthcheck)
+################################################################
+[ping]
+  entryPoint = "traefik"
+
+################################################################
+# API / Dashboard (activar solo en debug)
+################################################################
+[api]
+  dashboard = true
+  insecure = true   # ← TEMPORAL: luego poner "false" y usar el router @file
+
+################################################################
+# Providers
+################################################################
 [providers]
   [providers.docker]
     endpoint = "unix:///var/run/docker.sock"
     exposedByDefault = false
     watch = true
-    # IMPORTANTE: no pongas "network = {{ env ... }}" aquí; si querés, quitalo.
+    # No uses templating aquí. Si querés fijar una red, hardcodeala;
+    # mejor: usar el label "traefik.docker.network" en cada servicio.
+
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
 
-[api]
-  dashboard = true
-  insecure = true   # ← TEMPORAL para debug; luego lo volvemos a false
-
+################################################################
+# ACME (Let's Encrypt) - HTTP-01 en el entrypoint "web"
+################################################################
 [certificatesResolvers.leresolver.acme]
-  email = "mateo@lucai.bio"        # o el que uses
+  email = "mateo@lucai.bio"
   storage = "/acme.json"
   caServer = "https://acme-v02.api.letsencrypt.org/directory"
   [certificatesResolvers.leresolver.acme.httpChallenge]
     entryPoint = "web"
 
-
-# Router estático para que HTTP-01 no sea redirigido a HTTPS:
+################################################################
+# Router estático para NO redirigir el challenge (.well-known)
+################################################################
 [http.routers]
   [http.routers.acme-http01]
     rule = "PathPrefix(`/.well-known/acme-challenge/`)"

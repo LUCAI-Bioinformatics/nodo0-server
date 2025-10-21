@@ -1,9 +1,10 @@
 SHELL := /usr/bin/env bash
 
 PROJECT_ROOT := $(abspath .)
-COMPOSE ?= docker compose -f traefik/docker-compose.yml
+COMPOSE ?= docker compose --env-file $(PROJECT_ROOT)/.env -f traefik/docker-compose.yml
 
 -include .env
+export $(shell sed -n 's/^\([A-Za-z_][A-Za-z0-9_]*\)=.*/\1/p' $(PROJECT_ROOT)/.env)
 
 export TRAEFIK_DOCKER_NETWORK ?= internal-nodo0-web
 
