@@ -1,0 +1,36 @@
+version: "3.9"
+
+services:
+  traefik:
+    image: traefik:v3
+    container_name: traefik_nodo0
+    restart: always
+    env_file:
+      - ../.env
+    command:
+      - "--configfile=/etc/traefik/traefik.toml"
+      - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
+      - "--log.format=json"
+      - "--log.filepath=${TRAEFIK_LOG_FILE:-/var/log/traefik/traefik.log}"
+      - "--accesslog=${TRAEFIK_ACCESS_LOG:-false}"
+      - "--accesslog.format=json"
+      - "--accesslog.filepath=${TRAEFIK_ACCESS_LOG_FILE:-/var/log/traefik/access.log}"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - ./config/traefik.toml:/etc/traefik/traefik.toml:ro
+      - ./config/dynamic.toml:/etc/traefik/dynamic/dynamic.toml:ro
+      - ./config/acme.json:/acme.json
+      - ./logs:/var/log/traefik
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      edge:
+        external: true
+        name: ${TRAEFIK_DOCKER_NETWORK}
+
+networks:
+  edge:
+    external: true
+    name: ${TRAEFIK_DOCKER_NETWORK}
