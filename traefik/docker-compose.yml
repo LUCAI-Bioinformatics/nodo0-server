@@ -26,9 +26,7 @@ services:
       - ./logs:/var/log/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro
     networks:
-      edge:
-        external: true
-        name: ${TRAEFIK_DOCKER_NETWORK}
+      - edge
 
 networks:
   edge:
