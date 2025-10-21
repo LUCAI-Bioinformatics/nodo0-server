@@ -51,7 +51,7 @@ make logs | grep ACME
 3. Reutilizar el middleware `https_redirect@file` para forzar HTTPS.
 4. No commitear certificados: `traefik/config/acme.json` está en `.gitignore` y debe mantenerse así.
 
-El directorio `services/genphenia-api/` incluye un ejemplo real de `docker-compose.yml` con las labels y red adecuadas.
+El directorio `services/example-service/` incluye un ejemplo mínimo (`traefik/whoami`) con las labels y red necesarias para validar el ruteo.
 
 ## Notas finales
 
