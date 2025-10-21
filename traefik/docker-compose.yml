@@ -28,6 +28,7 @@ services:
       - ./config/acme.json:/acme.json
       - ./logs:/var/log/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/htpasswd:/etc/traefik/htpasswd:ro
 
     labels:
       - "traefik.enable=false"

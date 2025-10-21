@@ -10,7 +10,7 @@
 
   # Basic Auth para el dashboard
   [http.middlewares.dashboard_auth.basicAuth]
-    users = ["{{ env "TRAEFIK_DASHBOARD_USER" }}:{{ env "TRAEFIK_DASHBOARD_PASSWORD_HASH" }}"]
+    usersFile = "/etc/traefik/htpasswd"
     removeHeader = true
 
 ################################################################
@@ -20,16 +20,15 @@
 
   # HTTPS (principal)
   [http.routers.traefik-dashboard]
-    rule = "Host(`{{ env "TRAEFIK_DASHBOARD_HOST" }}`)"
+    rule = "Host(`{{ env \"TRAEFIK_DASHBOARD_HOST\" }}`)"
     entryPoints = ["websecure"]
     service = "api@internal"
     middlewares = ["dashboard_auth"]
     [http.routers.traefik-dashboard.tls]
       certResolver = "leresolver"
 
-  # HTTP → redirect a HTTPS (mismo host)
   [http.routers.traefik-dashboard-http]
-    rule = "Host(`{{ env "TRAEFIK_DASHBOARD_HOST" }}`)"
+    rule = "Host(`{{ env \"TRAEFIK_DASHBOARD_HOST\" }}`)"
     entryPoints = ["web"]
     middlewares = ["https_redirect"]
     service = "api@internal"
