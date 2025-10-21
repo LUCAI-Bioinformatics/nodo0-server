@@ -14,7 +14,6 @@ services:
       - edge
     labels:
       - "traefik.enable=true"
-      - "traefik.routing.enable=true"
       - "traefik.docker.network=${TRAEFIK_DOCKER_NETWORK}"
 
       - "traefik.http.routers.example.rule=Host(`example.infra.cluster.qb.fcen.uba.ar`)"

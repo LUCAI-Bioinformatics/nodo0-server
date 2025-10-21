@@ -47,7 +47,7 @@ make logs | grep ACME
 ## Agregar servicios nuevos
 
 1. Conectar el servicio a la red externa definida en `.env` (`TRAEFIK_DOCKER_NETWORK`, default `internal-nodo0-web`).
-2. Añadir labels de Traefik con el host público, entrypoints (`web`, `websecure`) y puerto interno correcto. Recordá incluir `traefik.routing.enable=true` además de `traefik.enable=true` (el proxy filtra servicios por esa etiqueta).
+2. Añadir labels de Traefik con el host público, entrypoints (`web`, `websecure`) y puerto interno correcto.
 3. Reutilizar el middleware `https_redirect@file` para forzar HTTPS.
 4. No commitear certificados: `traefik/config/acme.json` está en `.gitignore` y debe mantenerse así.
 

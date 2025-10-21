@@ -4,7 +4,6 @@ Snippets mínimos para validar que Traefik enruta correctamente hacia contenedor
 
 - Imagen usada: [`traefik/whoami`](https://hub.docker.com/r/traefik/whoami), muestra información básica del request.
 - Host virtual de ejemplo: `example.infra.cluster.qb.fcen.uba.ar`. Cambiá ambas labels `Host(...)` por tu dominio real antes de levantarlo.
-- La etiqueta `traefik.routing.enable=true` es obligatoria para que este Traefik descubra el servicio (además de `traefik.enable=true`).
 - El servicio escucha en el puerto 80 dentro del contenedor, por eso el `loadbalancer.server.port=80`.
 
 Para probarlo:
