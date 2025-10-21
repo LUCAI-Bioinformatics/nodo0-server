@@ -12,7 +12,7 @@
     endpoint = "unix:///var/run/docker.sock"
     exposedByDefault = false
     network = "{{ env \"TRAEFIK_DOCKER_NETWORK\" }}"
-    constraints = ["Label(\"traefik.routing.enable\", \"true\")"]
+    constraints = ['Label("traefik.routing.enable", "true")']
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
