@@ -16,6 +16,7 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.docker.network=${TRAEFIK_DOCKER_NETWORK}"
+      - "traefik.routing.enable=true"
 
       - "traefik.http.routers.genphenia-api.rule=Host(`genphenia.infra.cluster.qb.fcen.uba.ar`)"
       - "traefik.http.routers.genphenia-api.entrypoints=websecure"
