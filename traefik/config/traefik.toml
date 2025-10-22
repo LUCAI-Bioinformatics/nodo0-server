@@ -10,10 +10,10 @@
     address = ":443"
     [entryPoints.websecure.http.tls]
 
-[providers]
-  [providers.docker]
-    exposedByDefault = false
-    watch = false
+# [providers]
+#   [providers.docker]
+#     exposedByDefault = false
+#     watch = false
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
