@@ -33,3 +33,10 @@
     entryPoints = ["web"]
     middlewares = ["https_redirect"]
     service = "api@internal"
+    
+  [http.routers.acme-http01]
+    # cualquier host + el path del challenge
+    rule = 'HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)'
+    entryPoints = ["web"]
+    service = "noop@internal"
+    priority = 1000

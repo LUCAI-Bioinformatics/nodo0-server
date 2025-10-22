@@ -1,10 +1,7 @@
-################################################################
-# Entrypoints
-################################################################
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    # ❌ Quitar redirección global durante la emisión HTTP-01
+    # SIN redirección global aquí (comentado)
     # [entryPoints.web.http.redirections.entryPoint]
     #   to = "websecure"
     #   scheme = "https"
@@ -13,42 +10,18 @@
     address = ":443"
     [entryPoints.websecure.http.tls]
 
-  [entryPoints.traefik]
-    address = ":8080"
-
-[ping]
-  entryPoint = "traefik"
-
-################################################################
-# Providers (dejá Docker desactivado si querés emitir solo el dashboard)
-################################################################
-# [providers]
-#   [providers.docker]
-#     endpoint = "unix:///var/run/docker.sock"
-#     exposedByDefault = false
-#     watch = false
+[providers]
+  [providers.docker]
+    exposedByDefault = false
+    watch = false
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
 
-################################################################
-# ACME (Let's Encrypt) — HTTP-01
-################################################################
 [certificatesResolvers.leresolver.acme]
   email = "mateo@lucai.bio"
   storage = "/acme.json"
   caServer = "https://acme-v02.api.letsencrypt.org/directory"
   [certificatesResolvers.leresolver.acme.httpChallenge]
     entryPoint = "web"
-  # ❌ Quitar (por ahora) TLS-ALPN-01:
-  # [certificatesResolvers.leresolver.acme.tlsChallenge]
-
-################################################################
-# Bypass del challenge (prioridad alta, cualquier host)
-################################################################
-[http.routers]
-  [http.routers.acme-http01]
-    rule = "HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)"
-    entryPoints = ["web"]
-    service = "noop@internal"
-    priority = 1000
+# (sin tlsChallenge aquí)
