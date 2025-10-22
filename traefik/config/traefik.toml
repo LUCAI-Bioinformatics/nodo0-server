@@ -25,3 +25,7 @@
   [certificatesResolvers.leresolver.acme.httpChallenge]
     entryPoint = "web"
 # (sin tlsChallenge aquí)
+
+[api]
+  dashboard = true
+  insecure = true  
