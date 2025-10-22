@@ -1,39 +1,5 @@
-################################################################
-# Middlewares
-################################################################
-[http.middlewares]
-
-  # HTTP → HTTPS
-  [http.middlewares.https_redirect.redirectScheme]
-    scheme = "https"
-    permanent = true
-
-  # Basic Auth para el dashboard
-  [http.middlewares.dashboard_auth.basicAuth]
-    usersFile = "/etc/traefik/htpasswd"
-    removeHeader = true
-
-################################################################
-# Routers del dashboard
-################################################################
+# --- SOLO el bypass de ACME, para emitir el cert ---
 [http.routers]
-
-  # HTTPS (principal)
-  [http.routers.traefik-dashboard]
-    rule = 'Host(`{{ env "TRAEFIK_DASHBOARD_HOST" }}`)'
-    entryPoints = ["websecure"]
-    service = "api@internal"
-    middlewares = ["dashboard_auth"]
-    [http.routers.traefik-dashboard.tls]
-      certResolver = "leresolver"
-
-  # HTTP → HTTPS
-  [http.routers.traefik-dashboard-http]
-    rule = 'Host(`{{ env "TRAEFIK_DASHBOARD_HOST" }}`)'
-    entryPoints = ["web"]
-    middlewares = ["https_redirect"]
-    service = "api@internal"
-    
   [http.routers.acme-http01]
     rule = 'PathPrefix(`/.well-known/acme-challenge/`)'
     entryPoints = ["web"]
