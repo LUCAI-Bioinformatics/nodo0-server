@@ -32,11 +32,11 @@
 ################################################################
 # Providers
 ################################################################
-[providers]
-  [providers.docker]
-    endpoint = "unix:///var/run/docker.sock"
-    exposedByDefault = false
-    watch = true
+# [providers]
+#   [providers.docker]
+#     endpoint = "unix:///var/run/docker.sock"
+#     exposedByDefault = false
+#     watch = true
     # No uses templating aquí. Si querés fijar una red, hardcodeala;
     # mejor: usar el label "traefik.docker.network" en cada servicio.
 
@@ -52,9 +52,9 @@
   email = "mateo@lucai.bio"
   storage = "/acme.json"
   caServer = "https://acme-v02.api.letsencrypt.org/directory"
+  [certificatesResolvers.leresolver.acme.tlsChallenge]
 #   [certificatesResolvers.leresolver.acme.httpChallenge]
 #     entryPoint = "web"
-  [certificatesResolvers.leresolver.acme.tlsChallenge]
 
 ################################################################
 # Router estático para NO redirigir el challenge (.well-known)
