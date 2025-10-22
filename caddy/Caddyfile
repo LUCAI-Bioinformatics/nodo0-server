@@ -17,16 +17,6 @@
 		level DEBUG  # Cambiar a INFO en producción
 	}
 
-	# Log de errores separado para facilitar debugging
-	log error {
-		output file /var/log/caddy/error.log {
-			roll_size 50mb
-			roll_keep 5
-		}
-		format json
-		level ERROR
-	}
-
 	# Enable Docker provider for automatic service discovery
 	# Services are discovered via Docker labels (caddy.*)
 
