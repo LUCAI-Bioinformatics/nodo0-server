@@ -17,8 +17,8 @@
 	}
 }
 
-# Admin/debug endpoint - enable both HTTP and HTTPS
-http://caddy.infra.cluster.qb.fcen.uba.ar, caddy.infra.cluster.qb.fcen.uba.ar {
+# Admin/debug endpoint - HTTPS only, HTTP will auto-redirect except ACME
+caddy.infra.cluster.qb.fcen.uba.ar {
 	# Simple health/status endpoint
 	respond /health "OK - Caddy is running" 200
 
