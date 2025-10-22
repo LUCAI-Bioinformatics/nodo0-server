@@ -4,19 +4,18 @@
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    # Redirigimos todo HTTP → HTTPS (excepto el ACME, ver router abajo)
     [entryPoints.web.http.redirections.entryPoint]
       to = "websecure"
       scheme = "https"
 
   [entryPoints.websecure]
     address = ":443"
-    # TLS se negocia automáticamente cuando haya cert
+    # Habilita TLS en el entrypoint (requisito para TLS-ALPN-01)
+    [entryPoints.websecure.http.tls]
 
-  # Puerto interno para API/ping/diagnóstico
   [entryPoints.traefik]
     address = ":8080"
-
+    
 ################################################################
 # Ping (para healthcheck)
 ################################################################
