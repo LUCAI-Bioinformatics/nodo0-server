@@ -1,7 +1,31 @@
-# --- SOLO el bypass de ACME, para emitir el cert ---
+[http.middlewares]
+  [http.middlewares.https_redirect.redirectScheme]
+    scheme = "https"
+    permanent = true
+  [http.middlewares.dashboard_auth.basicAuth]
+    usersFile = "/etc/traefik/htpasswd"
+    removeHeader = true
+
 [http.routers]
+  # ACME bypass (dejalo como lo tenés)
   [http.routers.acme-http01]
     rule = 'PathPrefix(`/.well-known/acme-challenge/`)'
     entryPoints = ["web"]
     service = "noop@internal"
     priority = 100000
+
+  # Dashboard HTTPS (queda accesible aunque aún veas el default cert)
+  [http.routers.traefik-dashboard]
+    rule = 'Host(`traefik.infra.cluster.qb.fcen.uba.ar`)'
+    entryPoints = ["websecure"]
+    service = "api@internal"
+    middlewares = ["dashboard_auth"]
+    [http.routers.traefik-dashboard.tls]
+      certResolver = "leresolver"
+
+  # HTTP → HTTPS del dashboard
+  [http.routers.traefik-dashboard-http]
+    rule = 'Host(`traefik.infra.cluster.qb.fcen.uba.ar`)'
+    entryPoints = ["web"]
+    middlewares = ["https_redirect"]
+    service = "api@internal"
