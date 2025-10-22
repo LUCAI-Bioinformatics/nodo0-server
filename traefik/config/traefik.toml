@@ -1,30 +1,18 @@
-[entryPoints]
-  [entryPoints.web]
-    address = ":80"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
-  [entryPoints.websecure]
-    address = ":443"
+[http.middlewares]
+  [http.middlewares.https_redirect.redirectscheme]
+    scheme = "https"
+    permanent = true
 
-[providers]
-  [providers.docker]
-    endpoint = "unix:///var/run/docker.sock"
-    exposedByDefault = false
-    network = '{{ env "TRAEFIK_DOCKER_NETWORK" }}' 
-  [providers.file]
-    filename = "/etc/traefik/dynamic/dynamic.toml"
-    watch = true
+[http.routers]
+  [http.routers.traefik-dashboard]
+    rule = "Host(`traefik.infra.cluster.qb.fcen.uba.ar`)"
+    entryPoints = ["websecure"]
+    service = "api@internal"
+    [http.routers.traefik-dashboard.tls]
+      certResolver = "leresolver"
 
-[api]
-  dashboard = true
-  insecure = false
-
-[certificatesResolvers]
-  [certificatesResolvers.leresolver]
-    [certificatesResolvers.leresolver.acme]
-      email = '{{ env "LE_EMAIL" }}'   
-      storage = "/acme.json"
-      caServer = "https://acme-v02.api.letsencrypt.org/directory"
-      [certificatesResolvers.leresolver.acme.httpChallenge]
-        entryPoint = "web"
+  [http.routers.traefik-dashboard-http]
+    rule = "Host(`traefik.infra.cluster.qb.fcen.uba.ar`)"
+    entryPoints = ["web"]
+    service = "api@internal"
+    middlewares = ["https_redirect"]
