@@ -36,8 +36,8 @@ services:
       start_period: 15s
 
     labels:
-      # Caddy won't proxy itself
-      caddy.enable: "false"
+      # Caddy won't proxy itself - disable auto-discovery for this container
+      caddy_docker_proxy.enable: "false"
 
     # Logging driver para capturar TODO en Docker
     logging:
