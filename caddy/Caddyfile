@@ -17,8 +17,13 @@
 	}
 }
 
-# Admin/debug endpoint with Basic Auth (static configuration)
-# This is defined here since it's not a Docker service
+# HTTP server for ACME challenges and redirects
+http:// {
+	# Automatic HTTPS redirects
+	redir https://{host}{uri} permanent
+}
+
+# Admin/debug endpoint (HTTPS)
 caddy.infra.cluster.qb.fcen.uba.ar {
 	# Simple health/status endpoint
 	respond /health "OK - Caddy is running" 200
