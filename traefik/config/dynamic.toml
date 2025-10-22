@@ -7,14 +7,14 @@
     removeHeader = true
 
 [http.routers]
-  # ACME bypass (dejalo como lo tenés)
+  # --- ACME HTTP-01: bypass con prioridad altísima en :80
   [http.routers.acme-http01]
     rule = 'PathPrefix(`/.well-known/acme-challenge/`)'
     entryPoints = ["web"]
     service = "noop@internal"
     priority = 100000
 
-  # Dashboard HTTPS (queda accesible aunque aún veas el default cert)
+  # --- Dashboard SOLO por HTTPS (nada en HTTP)
   [http.routers.traefik-dashboard]
     rule = 'Host(`traefik.infra.cluster.qb.fcen.uba.ar`)'
     entryPoints = ["websecure"]
@@ -23,9 +23,9 @@
     [http.routers.traefik-dashboard.tls]
       certResolver = "leresolver"
 
-  # HTTP → HTTPS del dashboard
-  [http.routers.traefik-dashboard-http]
-    rule = 'Host(`traefik.infra.cluster.qb.fcen.uba.ar`)'
-    entryPoints = ["web"]
-    middlewares = ["https_redirect"]
-    service = "api@internal"
+  # ❌ COMENTAR mientras emitimos (este hacía el redirect en :80)
+  # [http.routers.traefik-dashboard-http]
+  #   rule = 'Host(`traefik.infra.cluster.qb.fcen.uba.ar`)'
+  #   entryPoints = ["web"]
+  #   middlewares = ["https_redirect"]
+  #   service = "api@internal"
