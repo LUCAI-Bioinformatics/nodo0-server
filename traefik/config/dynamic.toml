@@ -4,7 +4,7 @@
     permanent = true
 
   [http.middlewares.dashboard_auth.basicauth]
-    users = ["{{ env 'TRAEFIK_DASHBOARD_USER' }}:{{ env 'TRAEFIK_DASHBOARD_PASSWORD_HASH' }}"]
+    users = ['{{ env "TRAEFIK_DASHBOARD_USER" }}:{{ env "TRAEFIK_DASHBOARD_PASSWORD_HASH" }}']
     removeHeader = true
 
 [http.routers]
