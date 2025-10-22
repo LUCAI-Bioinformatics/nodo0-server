@@ -36,12 +36,7 @@
 
 # Admin/debug endpoint with Basic Auth (static configuration)
 # This is defined here since it's not a Docker service
-traefik.infra.cluster.qb.fcen.uba.ar {
-	# Basic Auth - replace with hash from: htpasswd -nbB admin password
-	basicauth {
-		admin $2y$05$YourBcryptHashHere
-	}
-
+caddy.infra.cluster.qb.fcen.uba.ar {
 	# Simple health/status endpoint
 	respond /health "OK - Caddy is running" 200
 
