@@ -5,23 +5,16 @@
 	# Use staging for testing, comment out for production
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-	# ========== LOGGING INTENSO PARA DEBUG ==========
-	# Nivel DEBUG captura TODO: ACME, errores, descubrimiento Docker, etc.
+	# Logging configuration
 	log {
-		output file /var/log/caddy/caddy-debug.log {
+		output file /var/log/caddy/caddy.log {
 			roll_size 100mb
 			roll_keep 10
-			roll_keep_for 720h  # 30 días
+			roll_keep_for 720h
 		}
 		format json
-		level DEBUG  # Cambiar a INFO en producción
+		level DEBUG
 	}
-
-	# Enable Docker provider for automatic service discovery
-	# Services are discovered via Docker labels (caddy.*)
-
-	# Configuración adicional para logs detallados de ACME
-	# Los logs de ACME/certificados aparecen en caddy-debug.log con level DEBUG
 }
 
 # Admin/debug endpoint with Basic Auth (static configuration)
