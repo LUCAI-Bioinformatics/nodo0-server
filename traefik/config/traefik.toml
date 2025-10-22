@@ -1,30 +1,34 @@
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
+    # SIN redirección global aquí (comentado)
+    # [entryPoints.web.http.redirections.entryPoint]
+    #   to = "websecure"
+    #   scheme = "https"
+
   [entryPoints.websecure]
     address = ":443"
+    [entryPoints.websecure.http.tls]
 
-[providers]
-  [providers.docker]
-    endpoint = "unix:///var/run/docker.sock"
-    exposedByDefault = false
-    network = "{{ env \"TRAEFIK_DOCKER_NETWORK\" }}"
+# [providers]
+#   [providers.docker]
+#     exposedByDefault = false
+#     watch = false
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
 
+[certificatesResolvers.leresolver.acme]
+  email = "mateo@lucai.bio"
+  storage = "/acme.json"
+  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
+  [certificatesResolvers.leresolver.acme.httpChallenge]
+    entryPoint = "web"
+# (sin tlsChallenge aquí)
+
 [api]
   dashboard = true
-  insecure = false
+  insecure = true  
 
-[certificatesResolvers]
-  [certificatesResolvers.leresolver]
-    [certificatesResolvers.leresolver.acme]
-      email = "{{ env \"LE_EMAIL\" }}"
-      storage = "/acme.json"
-      caServer = "https://acme-v02.api.letsencrypt.org/directory"
-      [certificatesResolvers.leresolver.acme.httpChallenge]
-        entryPoint = "web"
+[ping]
+  entryPoint = "traefik"

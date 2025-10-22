@@ -3,30 +3,47 @@ services:
     image: traefik:v3
     container_name: traefik_nodo0
     restart: always
+
     env_file:
       - ../.env
+
     command:
-      - "--configfile=/etc/traefik/traefik.toml"
+      - "--configFile=/etc/traefik/traefik.toml"         
+      - "--ping=true"
       - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
       - "--log.format=json"
-      - "--log.filepath=${TRAEFIK_LOG_FILE:-/var/log/traefik/traefik.log}"
+      - "--log.filePath=${TRAEFIK_LOG_FILE:-/var/log/traefik/traefik.log}"
       - "--accesslog=${TRAEFIK_ACCESS_LOG:-false}"
       - "--accesslog.format=json"
-      - "--accesslog.filepath=${TRAEFIK_ACCESS_LOG_FILE:-/var/log/traefik/access.log}"
+      - "--accesslog.filePath=${TRAEFIK_ACCESS_LOG_FILE:-/var/log/traefik/access.log}"
+
     ports:
       - "80:80"
       - "443:443"
       - "8080:8080"
+
     volumes:
       - ./config/traefik.toml:/etc/traefik/traefik.toml:ro
       - ./config/dynamic.toml:/etc/traefik/dynamic/dynamic.toml:ro
       - ./config/acme.json:/acme.json
       - ./logs:/var/log/traefik
       - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./config/htpasswd:/etc/traefik/htpasswd:ro
+
+    labels:
+      - "traefik.enable=false"
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8080/ping >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
     networks:
       - edge
 
 networks:
   edge:
     external: true
-    name: ${TRAEFIK_DOCKER_NETWORK}
+    name: ${TRAEFIK_DOCKER_NETWORK:-internal-nodo0-web}

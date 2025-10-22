@@ -1,5 +1,5 @@
 [http.middlewares]
-  [http.middlewares.https_redirect.redirectscheme]
+  [http.middlewares.https_redirect.redirectScheme]
     scheme = "https"
     permanent = true
 
@@ -8,6 +8,14 @@
     removeHeader = true
 
 [http.routers]
+  # --- ACME HTTP-01: bypass con prioridad altísima en :80
+  [http.routers.acme-http01]
+    rule = 'PathPrefix(`/.well-known/acme-challenge/`)'
+    entryPoints = ["web"]
+    service = "noop@internal"
+    priority = 100000
+
+  # --- Dashboard SOLO por HTTPS (nada en HTTP)
   [http.routers.traefik-dashboard]
     rule = "Host(`{{ env 'TRAEFIK_DASHBOARD_HOST' }}`)"
     entryPoints = ["websecure"]
