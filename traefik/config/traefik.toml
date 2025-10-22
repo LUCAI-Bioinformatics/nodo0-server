@@ -11,7 +11,7 @@
   [providers.docker]
     endpoint = "unix:///var/run/docker.sock"
     exposedByDefault = false
-    network = "{{ env "TRAEFIK_DOCKER_NETWORK" }}"
+    network = '{{ env "TRAEFIK_DOCKER_NETWORK" }}'
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
@@ -23,7 +23,7 @@
 [certificatesResolvers]
   [certificatesResolvers.leresolver]
     [certificatesResolvers.leresolver.acme]
-      email = "{{ env "LE_EMAIL" }}"
+      email = '{{ env "LE_EMAIL" }}'
       storage = "/acme.json"
       caServer = "https://acme-v02.api.letsencrypt.org/directory"
       [certificatesResolvers.leresolver.acme.httpChallenge]
