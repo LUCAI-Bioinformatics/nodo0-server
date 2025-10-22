@@ -21,7 +21,7 @@
 [certificatesResolvers.leresolver.acme]
   email = "mateo@lucai.bio"
   storage = "/acme.json"
-  caServer = "https://acme-v02.api.letsencrypt.org/directory"
+  caServer = "https://acme-staging-v02.api.letsencrypt.org/directory"
   [certificatesResolvers.leresolver.acme.httpChallenge]
     entryPoint = "web"
 # (sin tlsChallenge aquí)
