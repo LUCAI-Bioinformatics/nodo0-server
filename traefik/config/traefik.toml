@@ -22,11 +22,11 @@
 ################################################################
 # Providers (dejá Docker desactivado si querés emitir solo el dashboard)
 ################################################################
-[providers]
-  [providers.docker]
-    endpoint = "unix:///var/run/docker.sock"
-    exposedByDefault = false
-    watch = false
+# [providers]
+#   [providers.docker]
+#     endpoint = "unix:///var/run/docker.sock"
+#     exposedByDefault = false
+#     watch = false
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
