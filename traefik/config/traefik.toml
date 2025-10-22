@@ -1,18 +1,32 @@
-[http.middlewares]
-  [http.middlewares.https_redirect.redirectscheme]
-    scheme = "https"
-    permanent = true
+[entryPoints]
+  [entryPoints.web]
+    address = ":80"
+    [entryPoints.web.http.redirections.entryPoint]
+      to = "websecure"
+      scheme = "https"
 
-[http.routers]
-  [http.routers.traefik-dashboard]
-    rule = "Host(`traefik.infra.cluster.qb.fcen.uba.ar`)"
-    entryPoints = ["websecure"]
-    service = "api@internal"
-    [http.routers.traefik-dashboard.tls]
-      certResolver = "leresolver"
+  [entryPoints.websecure]
+    address = ":443"
 
-  [http.routers.traefik-dashboard-http]
-    rule = "Host(`traefik.infra.cluster.qb.fcen.uba.ar`)"
-    entryPoints = ["web"]
-    service = "api@internal"
-    middlewares = ["https_redirect"]
+[providers]
+  [providers.docker]
+    endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+    network = "internal-nodo0-web"
+
+  [providers.file]
+    filename = "/etc/traefik/dynamic/dynamic.toml"
+    watch = true
+
+[api]
+  dashboard = true
+  insecure = false
+
+[certificatesResolvers]
+  [certificatesResolvers.leresolver]
+    [certificatesResolvers.leresolver.acme]
+      email = "mateo@lucai.bio"
+      storage = "/acme.json"
+      caServer = "https://acme-v02.api.letsencrypt.org/directory"
+      [certificatesResolvers.leresolver.acme.httpChallenge]
+        entryPoint = "web"
