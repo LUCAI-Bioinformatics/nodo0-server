@@ -1,4 +1,12 @@
 *.env
+!.env.example
 logs/
 backups/
+
+# Traefik (legacy)
 traefik/config/acme.json
+
+# Caddy certificates and config
+caddy/data/
+caddy/config/
+caddy/logs/

@@ -1,13 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Ensures traefik/config/acme.json exists with correct permissions.
+# Ensures caddy/data directory exists with correct permissions.
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")"/.. && pwd)"
-ACME_FILE="$ROOT_DIR/traefik/config/acme.json"
+CERTS_DIR="$ROOT_DIR/caddy/data"
+CONFIG_DIR="$ROOT_DIR/caddy/config"
 
-if [[ ! -f "$ACME_FILE" ]]; then
-  touch "$ACME_FILE"
-fi
+# Create directories if they don't exist
+mkdir -p "$CERTS_DIR" "$CONFIG_DIR"
 
-chmod 600 "$ACME_FILE"
-echo "Permissions on $ACME_FILE set to 600"
+# Set proper ownership - Caddy runs as root in container but needs write access
+chmod -R 755 "$CERTS_DIR" "$CONFIG_DIR"
+echo "Permissions on Caddy directories set correctly"

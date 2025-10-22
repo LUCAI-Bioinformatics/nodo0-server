@@ -1,0 +1,50 @@
+version: "3.9"
+
+services:
+  caddy:
+    # Using caddy-docker-proxy for automatic service discovery via Docker labels
+    image: lucaslorentz/caddy-docker-proxy:2.9-alpine
+    container_name: caddy_nodo0
+    restart: always
+
+    env_file:
+      - ../.env
+
+    environment:
+      # Enable Docker provider for label-based discovery
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/Caddyfile
+      - CADDY_DOCKER_POLLING_INTERVAL=5s
+      - CADDY_DOCKER_LABEL_PREFIX=caddy
+
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3 support
+      # Optional: Caddy admin API (only on localhost for security)
+      # - "127.0.0.1:2019:2019"
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro  # Docker socket for discovery
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro           # Global config
+      - ./data:/data                                   # Persistent ACME certificates
+      - ./config:/config                               # Caddy internal config
+      - ../logs:/var/log/caddy                         # Logs directory
+
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:2019/config/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+
+    labels:
+      # Caddy won't proxy itself
+      caddy.enable: "false"
+
+    networks:
+      - edge
+
+networks:
+  edge:
+    external: true
+    name: ${CADDY_DOCKER_NETWORK:-internal-nodo0-web}

@@ -3,7 +3,7 @@ version: "3.9"
 networks:
   edge:
     external: true
-    name: ${TRAEFIK_DOCKER_NETWORK}
+    name: ${CADDY_DOCKER_NETWORK:-internal-nodo0-web}
 
 services:
   example-app:
@@ -12,16 +12,17 @@ services:
     restart: always
     networks:
       - edge
+
+    # Caddy Docker Proxy labels for automatic discovery
     labels:
-      - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_DOCKER_NETWORK}"
+      # Enable Caddy auto-discovery with hostname
+      caddy: "example.infra.cluster.qb.fcen.uba.ar"
 
-      - "traefik.http.routers.example.rule=Host(`example.infra.cluster.qb.fcen.uba.ar`)"
-      - "traefik.http.routers.example.entrypoints=websecure"
-      - "traefik.http.routers.example.tls=true"
-      - "traefik.http.routers.example.tls.certresolver=leresolver"
-      - "traefik.http.services.example.loadbalancer.server.port=80"
+      # Reverse proxy to port 80 (whoami default)
+      caddy.reverse_proxy: "{{upstreams 80}}"
 
-      - "traefik.http.routers.example-http.rule=Host(`example.infra.cluster.qb.fcen.uba.ar`)"
-      - "traefik.http.routers.example-http.entrypoints=web"
-      - "traefik.http.routers.example-http.middlewares=https_redirect@file"
+      # Automatic HTTPS with Let's Encrypt
+      # (omit caddy.tls or set to empty for automatic)
+
+      # Optional: Add custom response headers
+      caddy.header.X-Served-By: "Caddy-nodo0"

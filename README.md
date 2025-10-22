@@ -1,62 +1,174 @@
-# nodo0-traefik-stack
+# nodo0-caddy-stack
 
-Stack de Traefik v3 lista para reemplazar el proxy actual en nodo0. Incluye automatización con Makefile y scripts para manejar red, certificados y permisos.
+Stack de Caddy v2 con auto-discovery que reemplaza Traefik en nodo0. Incluye descubrimiento automático de servicios vía Docker labels, automatización con Makefile, y configuración simplificada vs. Traefik.
 
 ## Arquitectura
 
-- Traefik v3 (imagen `traefik:v3`) expuesto en 80/443/8080.
-- Providers Docker (solo servicios con `traefik.enable=true`) y File (`dynamic.toml`).
-- Certificados Let's Encrypt (HTTP-01) con almacenamiento persistente en `traefik/config/acme.json`.
-- Dashboard/API habilitado solo para debugging en 8080 con Basic Auth (`TRAEFIK_DASHBOARD_USER` + hash bcrypt en `.env`).
-- Red Docker externa `internal-nodo0-web` compartida con los servicios backend.
+- **Caddy v2** con plugin `caddy-docker-proxy` (imagen `lucaslorentz/caddy-docker-proxy:2.9-alpine`)
+- **Auto-discovery**: Servicios descubiertos automáticamente via Docker labels (similar a Traefik)
+- **Puertos**: 80 (HTTP), 443 (HTTPS), 443/UDP (HTTP/3)
+- **Certificados**: Let's Encrypt (HTTP-01 y TLS-ALPN-01) automático, almacenamiento persistente en `caddy/data/`
+- **Logs**: JSON estructurados en `logs/`
+- **Red**: Docker externa `internal-nodo0-web` compartida con servicios backend
+- **Zero-restart**: Levantás contenedores nuevos y Caddy los detecta automáticamente (polling 5s)
 
 ## Requisitos
 
 - Docker 20.10+ y Docker Compose plugin.
 - Puertos 80 y 443 libres en el host.
-- DNS apuntando a nodo0 (`infra.cluster.qb.fcen.uba.ar`) y conectividad saliente a Let's Encrypt.
+- DNS apuntando a nodo0 (`*.infra.cluster.qb.fcen.uba.ar`) y conectividad saliente a Let's Encrypt.
 
 ## Puesta en marcha
 
 ```bash
 cp .env.example .env
-# Completar LE_EMAIL, credenciales de dashboard y cualquier override necesario
-make check
-make up
-# Verificar emisión de certificados y errores ACME
-make logs | grep ACME
+# Completar LE_EMAIL y CADDY_ADMIN_PASSWORD_HASH
+# Generar hash: htpasswd -nbB admin password
+
+make check     # Valida configuración
+make validate  # Valida sintaxis de Caddyfile
+make up        # Levanta Caddy
+
+# Verificar emisión de certificados
+make logs | grep -i "certificate obtained"
 ```
 
-## Migración segura desde el Traefik existente
+## Migración desde Traefik
 
-1. Detener el contenedor antiguo: `docker stop traefik` (o nombre equivalente).
-2. Copiar el `acme.json` actual a `traefik/config/acme.json` dentro de este repo.
-3. Asegurar permisos: `chmod 600 traefik/config/acme.json` o `make perms`.
-4. Levantar el nuevo stack: `make up`.
-5. Validar acceso HTTPS a los hosts publicados.
+Ver `MIGRATION.md` para guía completa paso a paso.
+
+Resumen:
+1. Backup certificados Traefik: `make acme.backup` (con Makefile viejo)
+2. Configurar rutas equivalentes en `caddy/Caddyfile`
+3. Detener Traefik: `cd traefik && docker compose down`
+4. Iniciar Caddy: `cd .. && make up`
+5. Validar acceso HTTPS a servicios
+6. Limpiar labels `traefik.*` de servicios backend (ya no se usan)
+
+**Nota**: Los certificados de Traefik (`acme.json`) NO son migrables directamente. Caddy re-emite certificados (seguro si no estás cerca de rate limits de Let's Encrypt).
 
 ## Scripts y Makefile
 
-- `make network` crea la red externa (`scripts/ensure_network.sh`).
-- `make up|down|restart|logs` controla el ciclo de vida del proxy (con `make logs FILE=logs/traefik-$(date -Iseconds).log` guarda una copia).
-- `make check` valida presencia de `acme.json`, permisos y red.
-- `make acme.backup` genera un backup timestamped en `backups/`.
-- `make acme.restore FILE=backups/acme-YYYYmmdd-HHMMSSZ.json` restaura un backup (sin `FILE` usa el más reciente).
-- `make perms` garantiza permisos 600 en `acme.json`.
+- `make network` crea la red externa si no existe.
+- `make up|down|restart|logs` controla el ciclo de vida del proxy.
+- `make validate` valida sintaxis del Caddyfile antes de desplegar.
+- `make check` valida presencia de directorios, Caddyfile y red.
+- `make certs.backup` genera backup timestamped de `caddy/data/` en `backups/`.
+- `make certs.restore [FILE=...]` restaura backup (sin FILE usa el más reciente).
+- `make perms` garantiza permisos correctos en directorios de Caddy.
 
-## Agregar servicios nuevos
+## Agregar servicios nuevos (Auto-Discovery)
 
-1. Conectar el servicio a la red externa definida en `.env` (`TRAEFIK_DOCKER_NETWORK`, default `internal-nodo0-web`).
-2. Añadir labels de Traefik con el host público, entrypoints (`web`, `websecure`) y puerto interno correcto.
-3. Reutilizar el middleware `https_redirect@file` para forzar HTTPS.
-4. No commitear certificados: `traefik/config/acme.json` está en `.gitignore` y debe mantenerse así.
+**🚀 Igual que Traefik**: Caddy con `docker-proxy` lee labels Docker y descubre servicios automáticamente. ¡No hay que editar Caddyfile ni reiniciar Caddy!
 
-El directorio `services/example-service/` incluye un ejemplo mínimo (`traefik/whoami`) con las labels y red necesarias para validar el ruteo.
+### 1. Conectar servicio a la red
+
+En el `docker-compose.yml` del servicio:
+
+```yaml
+networks:
+  edge:
+    external: true
+    name: ${CADDY_DOCKER_NETWORK:-internal-nodo0-web}
+
+services:
+  miservicio:
+    image: miapp:latest
+    networks:
+      - edge
+    expose:
+      - "8080"  # Puerto interno
+```
+
+### 2. Agregar labels Caddy
+
+En el mismo `docker-compose.yml` del servicio:
+
+```yaml
+services:
+  miservicio:
+    # ... config anterior ...
+    labels:
+      # Hostname público
+      caddy: "miapp.infra.cluster.qb.fcen.uba.ar"
+
+      # Reverse proxy al puerto interno
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+
+      # Opcional: headers personalizados
+      caddy.header_up.X-Real-IP: "{remote_host}"
+      caddy.header_up.X-Forwarded-Proto: "{scheme}"
+
+      # Opcional: log por servicio
+      caddy.log: "output file /var/log/caddy/miapp.log"
+```
+
+**¡Eso es todo!** No tocar Caddyfile.
+
+### 3. Levantar el servicio
+
+```bash
+docker compose up -d
+```
+
+En 5-10 segundos, Caddy automáticamente:
+- Redirige HTTP → HTTPS
+- Obtiene certificado Let's Encrypt
+- Proxy requests al backend
+
+### 4. Verificar
+
+```bash
+# Ver detección automática en logs
+make logs | grep miservicio
+
+# Probar HTTPS
+curl -I https://miapp.infra.cluster.qb.fcen.uba.ar
+
+# Ver config generada
+docker exec caddy_nodo0 caddy config
+```
+
+## Ejemplo: genphenia-api
+
+El directorio `services/genphenia-api/` incluye un ejemplo real de servicio configurado para Caddy:
+
+```bash
+cd services/genphenia-api
+CADDY_DOCKER_NETWORK=internal-nodo0-web docker compose up -d
+```
+
+Ver `services/genphenia-api/README.md` para más detalles.
+
+## Diferencias clave con Traefik
+
+| Aspecto | Traefik | Caddy + docker-proxy |
+|---------|---------|---------------------|
+| **Configuración** | TOML + labels Docker | Labels Docker (similar) |
+| **Descubrimiento** | Automático (labels) | ✅ Automático (labels) |
+| **Certificados** | `acme.json` (1 archivo) | `caddy/data/` (directorio) |
+| **Dashboard** | Web UI nativo | Admin API (localhost) |
+| **HTTPS redirect** | Middleware config | Automático |
+| **Syntax labels** | `traefik.*` (5+ labels) | `caddy.*` (2 labels mínimo) |
+| **Complejidad** | Mayor | Menor (labels más simples) |
 
 ## Notas finales
 
-- `acme.json` debe persistirse entre despliegues para evitar límites de Let's Encrypt.
-- Los logs generales viven en `logs/traefik.log` (formato JSON). Ajustá `TRAEFIK_LOG_LEVEL` a `DEBUG` si necesitás más detalle; los eventos ACME se registran con nivel `INFO`.
-- Para auditoría de ruteo podés activar el access log con `TRAEFIK_ACCESS_LOG=true`; se guarda en `logs/access.log`.
-- El hash bcrypt para el dashboard puede generarse con `htpasswd -nbB usuario password` o `openssl passwd -6`.
-- Los scripts crean `backups/` según sea necesario; recordá conservarlos en un lugar seguro.
+- `caddy/data/` debe persistirse entre despliegues para conservar certificados.
+- **Con auto-discovery**: Levantar nuevos servicios NO requiere reiniciar Caddy (detección automática cada 5s).
+- **Labels Caddy**: Mucho más simples que Traefik (2 labels mínimo vs 5+ en Traefik).
+- Logs viven en `logs/` (JSON) y se rotan con logrotate o similar.
+- Para debug: `make logs`, `make validate`, o `docker exec caddy_nodo0 caddy config`.
+- El hash bcrypt para admin puede generarse con `htpasswd -nbB usuario password`.
+- Los scripts crean `backups/` según sea necesario; conservarlos en lugar seguro.
+- Staging ACME: Comentar/descomentar `acme_ca` en bloque global de Caddyfile.
+- **Docker socket**: Caddy tiene acceso read-only a `/var/run/docker.sock` para descubrimiento.
+
+## Soporte adicional
+
+- **AUTO_DISCOVERY.md**: Guía completa de auto-discovery con labels Docker (⭐ importante)
+- **CLAUDE.md**: Guía detallada para Claude Code con comandos y arquitectura
+- **MIGRATION.md**: Proceso completo de migración desde Traefik
+- **QUICKSTART.md**: Inicio rápido
+- **services/genphenia-api/**: Ejemplo real de servicio con labels
+- **services/example-service/**: Ejemplo simple (whoami) con labels

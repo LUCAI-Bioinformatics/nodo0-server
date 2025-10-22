@@ -1,0 +1,46 @@
+{
+	# Global options
+	email mateo@lucai.bio
+
+	# Use staging for testing, comment out for production
+	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+
+	# Log settings
+	log {
+		output file /var/log/caddy/access.log
+		format json
+		level INFO
+	}
+
+	# Enable Docker provider for automatic service discovery
+	# Services are discovered via Docker labels (caddy.*)
+}
+
+# Admin/debug endpoint with Basic Auth (static configuration)
+# This is defined here since it's not a Docker service
+traefik.infra.cluster.qb.fcen.uba.ar {
+	# Basic Auth - replace with hash from: htpasswd -nbB admin password
+	basicauth {
+		admin $2y$05$YourBcryptHashHere
+	}
+
+	# Simple health/status endpoint
+	respond /health "OK - Caddy is running" 200
+
+	# Root path shows basic info
+	respond / "Caddy Admin - nodo0 (Auto-discovery enabled)" 200
+
+	# Logging
+	log {
+		output file /var/log/caddy/admin.log
+		format json
+	}
+}
+
+# All other services are discovered automatically via Docker labels
+# No need to define routes here - just add labels to your containers!
+#
+# Example labels for a service:
+#   caddy: "genphenia.infra.cluster.qb.fcen.uba.ar"
+#   caddy.reverse_proxy: "{{upstreams 8080}}"
+#   caddy.tls.dns: "cloudflare"  # optional

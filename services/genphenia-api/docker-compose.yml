@@ -1,0 +1,55 @@
+version: "3.9"
+
+networks:
+  edge:
+    external: true
+    name: ${CADDY_DOCKER_NETWORK:-internal-nodo0-web}
+
+services:
+  genphenia-api:
+    # Replace with your actual image
+    image: your-registry/genphenia-api:latest
+    container_name: genphenia_api_nodo0
+    restart: always
+
+    # Internal port - must match the port Caddy proxies to
+    expose:
+      - "8080"
+
+    networks:
+      - edge
+
+    # Environment variables for your application
+    environment:
+      - PORT=8080
+      - NODE_ENV=production
+
+    # Caddy Docker Proxy labels for automatic discovery
+    labels:
+      # Enable Caddy auto-discovery
+      caddy: "genphenia.infra.cluster.qb.fcen.uba.ar"
+
+      # Reverse proxy to this service on port 8080
+      caddy.reverse_proxy: "{{upstreams 8080}}"
+
+      # Automatic HTTPS with Let's Encrypt (HTTP-01 challenge)
+      caddy.tls: "internal"  # Or omit for automatic Let's Encrypt
+
+      # Optional: Custom headers
+      caddy.header_up.X-Real-IP: "{remote_host}"
+      caddy.header_up.X-Forwarded-Proto: "{scheme}"
+
+      # Optional: Per-service logging
+      caddy.log: "output file /var/log/caddy/genphenia.log"
+
+    # Optional: health check
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+    # Volumes for persistent data if needed
+    # volumes:
+    #   - ./data:/app/data
