@@ -35,8 +35,7 @@
     service = "api@internal"
     
   [http.routers.acme-http01]
-    # cualquier host + el path del challenge
-    rule = 'HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)'
+    rule = 'PathPrefix(`/.well-known/acme-challenge/`)'
     entryPoints = ["web"]
     service = "noop@internal"
-    priority = 1000
+    priority = 100000
