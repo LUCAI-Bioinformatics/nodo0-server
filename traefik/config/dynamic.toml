@@ -2,17 +2,12 @@
   [http.middlewares.https_redirect.redirectscheme]
     scheme = "https"
     permanent = true
-
-  [http.middlewares.dashboard_auth.basicauth]
-    users = ["{{ env \"TRAEFIK_DASHBOARD_USER\" }}:{{ env \"TRAEFIK_DASHBOARD_PASSWORD_HASH\" }}"]
-    removeHeader = true
-
+    
 [http.routers]
   [http.routers.traefik-dashboard]
     rule = "Host(`{{ env \"TRAEFIK_DASHBOARD_HOST\" }}`)"
     entryPoints = ["websecure"]
     service = "api@internal"
-    middlewares = ["dashboard_auth"]
     [http.routers.traefik-dashboard.tls]
       certResolver = "leresolver"
 
