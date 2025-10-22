@@ -17,14 +17,8 @@
 	}
 }
 
-# HTTP server for ACME challenges and redirects
-http:// {
-	# Automatic HTTPS redirects
-	redir https://{host}{uri} permanent
-}
-
-# Admin/debug endpoint (HTTPS)
-caddy.infra.cluster.qb.fcen.uba.ar {
+# Admin/debug endpoint - enable both HTTP and HTTPS
+http://caddy.infra.cluster.qb.fcen.uba.ar, caddy.infra.cluster.qb.fcen.uba.ar {
 	# Simple health/status endpoint
 	respond /health "OK - Caddy is running" 200
 
