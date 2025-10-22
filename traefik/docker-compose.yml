@@ -3,8 +3,6 @@ services:
     image: traefik:v3
     container_name: traefik_nodo0
     restart: always
-    env_file:
-      - ../.env
     command:
       - "--configfile=/etc/traefik/traefik.toml"
       - "--log.level=${TRAEFIK_LOG_LEVEL:-INFO}"
@@ -29,4 +27,4 @@ services:
 networks:
   edge:
     external: true
-    name: ${TRAEFIK_DOCKER_NETWORK}
+    name: internal-nodo0-web
