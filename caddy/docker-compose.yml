@@ -11,9 +11,9 @@ services:
     environment:
       # Enable Docker provider for label-based discovery
       - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/Caddyfile
+      - CADDY_DOCKER_PROCESS_CADDYFILE=true  # Process the static Caddyfile
       - CADDY_DOCKER_POLLING_INTERVAL=5s
       - CADDY_DOCKER_LABEL_PREFIX=caddy
-      - CADDY_DOCKER_MODE=server  # Create HTTP and HTTPS servers
 
     ports:
       - "80:80"
