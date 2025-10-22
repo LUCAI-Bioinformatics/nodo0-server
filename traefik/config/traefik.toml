@@ -48,19 +48,21 @@
 ################################################################
 # ACME (Let's Encrypt) - HTTP-01 en el entrypoint "web"
 ################################################################
+
 [certificatesResolvers.leresolver.acme]
   email = "mateo@lucai.bio"
   storage = "/acme.json"
   caServer = "https://acme-v02.api.letsencrypt.org/directory"
-  [certificatesResolvers.leresolver.acme.httpChallenge]
-    entryPoint = "web"
+#   [certificatesResolvers.leresolver.acme.httpChallenge]
+#     entryPoint = "web"
+  [certificatesResolvers.leresolver.acme.tlsChallenge]
 
 ################################################################
 # Router estático para NO redirigir el challenge (.well-known)
 ################################################################
-[http.routers]
-  [http.routers.acme-http01]
-    rule = "HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)"
-    entryPoints = ["web"]
-    service = "noop@internal"
-    priority = 1000
+# [http.routers]
+#   [http.routers.acme-http01]
+#     rule = "HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)"
+#     entryPoints = ["web"]
+#     service = "noop@internal"
+#     priority = 1000
