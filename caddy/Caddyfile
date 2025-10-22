@@ -5,15 +5,33 @@
 	# Use staging for testing, comment out for production
 	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
-	# Log settings
+	# ========== LOGGING INTENSO PARA DEBUG ==========
+	# Nivel DEBUG captura TODO: ACME, errores, descubrimiento Docker, etc.
 	log {
-		output file /var/log/caddy/access.log
+		output file /var/log/caddy/caddy-debug.log {
+			roll_size 100mb
+			roll_keep 10
+			roll_keep_for 720h  # 30 días
+		}
 		format json
-		level INFO
+		level DEBUG  # Cambiar a INFO en producción
+	}
+
+	# Log de errores separado para facilitar debugging
+	log error {
+		output file /var/log/caddy/error.log {
+			roll_size 50mb
+			roll_keep 5
+		}
+		format json
+		level ERROR
 	}
 
 	# Enable Docker provider for automatic service discovery
 	# Services are discovered via Docker labels (caddy.*)
+
+	# Configuración adicional para logs detallados de ACME
+	# Los logs de ACME/certificados aparecen en caddy-debug.log con level DEBUG
 }
 
 # Admin/debug endpoint with Basic Auth (static configuration)
@@ -30,10 +48,14 @@ traefik.infra.cluster.qb.fcen.uba.ar {
 	# Root path shows basic info
 	respond / "Caddy Admin - nodo0 (Auto-discovery enabled)" 200
 
-	# Logging
+	# Logging específico del admin endpoint
 	log {
-		output file /var/log/caddy/admin.log
+		output file /var/log/caddy/admin.log {
+			roll_size 10mb
+			roll_keep 3
+		}
 		format json
+		level DEBUG
 	}
 }
 

@@ -1,4 +1,29 @@
-version: "3.9"
+# ============================================================
+# PLANTILLA DE SERVICIO CON AUTO-DISCOVERY CADDY
+# ============================================================
+#
+# CÓMO USAR ESTA PLANTILLA:
+#
+# 1. Copiar este directorio:
+#    cp -r services/example-service services/mi-servicio
+#
+# 2. Editar este archivo y reemplazar:
+#    - example-app → mi-servicio (nombre del servicio)
+#    - example_app_nodo0 → mi_servicio_nodo0 (nombre del contenedor)
+#    - traefik/whoami:v1.10 → tu-registry/tu-imagen:tag
+#    - example.infra.cluster.qb.fcen.uba.ar → tu-dominio.com
+#    - 80 → puerto interno de tu aplicación
+#
+# 3. Levantar tu servicio:
+#    cd services/mi-servicio
+#    docker compose up -d
+#
+# 4. Verificar auto-discovery (esperar 5-10 segundos):
+#    cd ../../  # volver a nodo0-server/
+#    make logs.discovery | grep mi-servicio
+#    curl -I https://tu-dominio.com
+#
+# ============================================================
 
 networks:
   edge:
@@ -7,22 +32,140 @@ networks:
 
 services:
   example-app:
+    # ========== CONFIGURACIÓN DE TU IMAGEN ==========
+    # Reemplaza con tu imagen real
     image: traefik/whoami:v1.10
+
+    # Nombre del contenedor (debe ser único en el host)
     container_name: example_app_nodo0
+
+    # Política de restart
     restart: always
+
+    # ========== RED DOCKER ==========
+    # IMPORTANTE: Debe estar en la misma red que Caddy
     networks:
       - edge
 
-    # Caddy Docker Proxy labels for automatic discovery
+    # ========== PUERTO INTERNO ==========
+    # Puerto que tu aplicación escucha DENTRO del contenedor
+    # NO expongas con ports: - esto es interno a Docker
+    expose:
+      - "80"  # Cambiar al puerto de tu app (ej: 3000, 8080, 8000)
+
+    # ========== VARIABLES DE ENTORNO ==========
+    # Configuración de tu aplicación
+    environment:
+      - PORT=80  # Debe coincidir con el expose de arriba
+      - NODE_ENV=production
+      # Agregar las variables que tu app necesite
+
+    # ========== LABELS CADDY (AUTO-DISCOVERY) ==========
     labels:
-      # Enable Caddy auto-discovery with hostname
+      # REQUERIDO: Hostname público (tu dominio)
+      # Este es el dominio que apuntará a tu servicio
       caddy: "example.infra.cluster.qb.fcen.uba.ar"
 
-      # Reverse proxy to port 80 (whoami default)
+      # REQUERIDO: Reverse proxy al puerto interno
+      # {{upstreams PUERTO}} usa el nombre del servicio automáticamente
       caddy.reverse_proxy: "{{upstreams 80}}"
 
-      # Automatic HTTPS with Let's Encrypt
-      # (omit caddy.tls or set to empty for automatic)
+      # OPCIONAL: Headers personalizados enviados al backend
+      caddy.header_up.X-Real-IP: "{remote_host}"
+      caddy.header_up.X-Forwarded-Proto: "{scheme}"
+      caddy.header_up.X-Forwarded-For: "{remote_host}"
 
-      # Optional: Add custom response headers
-      caddy.header.X-Served-By: "Caddy-nodo0"
+      # OPCIONAL: Logging específico para este servicio
+      # Crea un archivo de log separado en logs/
+      caddy.log: "output file /var/log/caddy/example.log"
+
+      # OPCIONAL: TLS custom (por defecto usa Let's Encrypt automático)
+      # Descomentar solo si necesitas certificado interno/staging
+      # caddy.tls: "internal"
+
+      # OPCIONAL: Health check del upstream
+      # Caddy verifica que tu app responda antes de enviar tráfico
+      # caddy.reverse_proxy.health_uri: "/health"
+      # caddy.reverse_proxy.health_interval: "30s"
+
+      # OPCIONAL: Timeout personalizado (por defecto 30s)
+      # caddy.reverse_proxy.transport.dial_timeout: "10s"
+      # caddy.reverse_proxy.transport.response_header_timeout: "30s"
+
+    # ========== HEALTH CHECK DE DOCKER ==========
+    # Verifica que tu aplicación esté funcionando
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+      # Ajustar el path "/" si tu app tiene otro endpoint de health
+
+    # ========== VOLÚMENES (OPCIONAL) ==========
+    # Si tu app necesita persistir datos
+    # volumes:
+    #   - ./data:/app/data
+    #   - ./config:/app/config
+
+    # ========== DEPENDENCIAS (OPCIONAL) ==========
+    # Si tu app depende de otros servicios (DB, cache, etc)
+    # depends_on:
+    #   - postgres
+    #   - redis
+
+# ============================================================
+# SERVICIOS ADICIONALES (OPCIONAL)
+# ============================================================
+# Si tu aplicación necesita base de datos, cache, etc., agrégalos aquí
+# Ejemplo:
+#
+# postgres:
+#   image: postgres:15-alpine
+#   container_name: postgres_example_nodo0
+#   environment:
+#     POSTGRES_DB: myapp
+#     POSTGRES_USER: myapp
+#     POSTGRES_PASSWORD: ${DB_PASSWORD}
+#   volumes:
+#     - postgres_data:/var/lib/postgresql/data
+#   networks:
+#     - edge
+#
+# volumes:
+#   postgres_data:
+# ============================================================
+
+# ============================================================
+# LABELS CADDY AVANZADOS (REFERENCIA)
+# ============================================================
+#
+# Múltiples dominios:
+#   caddy: "app.example.com otro.example.com"
+#
+# Subpath routing:
+#   caddy: "example.com"
+#   caddy.reverse_proxy: "/api/* {{upstreams 8080}}"
+#
+# Basic Auth:
+#   caddy.basicauth: "/admin/*"
+#   caddy.basicauth.admin: "$2y$05$hash..."  # htpasswd -nbB admin pass
+#
+# WebSocket support (habilitado por defecto):
+#   caddy.reverse_proxy.header_up.Connection: "{>Connection}"
+#   caddy.reverse_proxy.header_up.Upgrade: "{>Upgrade}"
+#
+# CORS headers:
+#   caddy.header.Access-Control-Allow-Origin: "*"
+#   caddy.header.Access-Control-Allow-Methods: "GET,POST,PUT,DELETE"
+#
+# Rate limiting (requiere módulo):
+#   caddy.rate_limit: "100/m"
+#
+# Redirect www → non-www:
+#   caddy_0: "www.example.com"
+#   caddy_0.redir: "https://example.com{uri}"
+#
+# ============================================================
+# Ver AUTO_DISCOVERY.md para más ejemplos
+# ============================================================

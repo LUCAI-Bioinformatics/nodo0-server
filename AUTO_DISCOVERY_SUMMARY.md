@@ -1,4 +1,4 @@
-# Resumen: Auto-Discovery Habilitado ✅
+# Resumen: Auto-Discovery Habilitado 
 
 El stack de Caddy ahora incluye **auto-discovery de servicios** mediante `caddy-docker-proxy`, funcionando de manera similar a Traefik con labels Docker.
 
@@ -19,18 +19,18 @@ El stack de Caddy ahora incluye **auto-discovery de servicios** mediante `caddy-
 3. ¡Listo! (detección automática en 5-10s)
 ```
 
-**Sin editar Caddyfile, sin reiniciar Caddy** 🚀
+**Sin editar Caddyfile, sin reiniciar Caddy** 
 
 ## Comparación con Traefik
 
 | Característica | Traefik | Caddy con docker-proxy |
 |----------------|---------|------------------------|
-| Descubrimiento automático | ✅ Labels | ✅ Labels |
-| Restart necesario | ❌ No | ❌ No |
+| Descubrimiento automático |  Labels |  Labels |
+| Restart necesario |  No |  No |
 | Labels mínimos | 5+ | 2 |
 | Syntax labels | `traefik.*` | `caddy.*` |
-| HTTPS automático | ✅ Sí | ✅ Sí |
-| Dashboard web | ✅ Sí | ❌ No (API local) |
+| HTTPS automático |  Sí |  Sí |
+| Dashboard web |  Sí |  No (API local) |
 
 ## Labels: Traefik vs Caddy
 
@@ -83,14 +83,14 @@ labels:
 ```
 nodo0-server/
 ├── caddy/
-│   ├── docker-compose.yml        # ✏️ Cambiado a lucaslorentz/caddy-docker-proxy
-│   └── Caddyfile                 # ✏️ Solo config global, sin routes de servicios
+│   ├── docker-compose.yml        # ✏ Cambiado a lucaslorentz/caddy-docker-proxy
+│   └── Caddyfile                 # ✏ Solo config global, sin routes de servicios
 │
 ├── services/
 │   ├── genphenia-api/
-│   │   └── docker-compose.yml    # ✏️ Agregados labels caddy.*
+│   │   └── docker-compose.yml    # ✏ Agregados labels caddy.*
 │   └── example-service/
-│       └── docker-compose.yml    # ✏️ Migrado de labels traefik.* → caddy.*
+│       └── docker-compose.yml    # ✏ Migrado de labels traefik.* → caddy.*
 │
 ├── AUTO_DISCOVERY.md             # 📄 Nuevo - guía completa
 └── AUTO_DISCOVERY_SUMMARY.md     # 📄 Nuevo - este archivo
@@ -129,19 +129,19 @@ Para máxima seguridad en producción, considerar [docker-socket-proxy](https://
 
 ## Ventajas del Auto-Discovery
 
-✅ **Workflow idéntico a Traefik** - migración mental cero
-✅ **Zero-downtime deployments** - levantás nuevos containers sin tocar proxy
-✅ **GitOps friendly** - cada servicio define su propio routing
-✅ **Menos errores** - no hay que mantener Caddyfile sincronizado manualmente
-✅ **Más simple** - 2 labels vs 5+ de Traefik
-✅ **Testing fácil** - levantar/bajar servicios sin afectar proxy
+ **Workflow idéntico a Traefik** - migración mental cero
+ **Zero-downtime deployments** - levantás nuevos containers sin tocar proxy
+ **GitOps friendly** - cada servicio define su propio routing
+ **Menos errores** - no hay que mantener Caddyfile sincronizado manualmente
+ **Más simple** - 2 labels vs 5+ de Traefik
+ **Testing fácil** - levantar/bajar servicios sin afectar proxy
 
 ## Desventajas vs Static Config
 
-⚠️ **Dependencia extra** - plugin de terceros (bien mantenido)
-⚠️ **Docker socket** - acceso al socket (read-only pero existe)
-⚠️ **Debugging más complejo** - config generada dinámicamente
-⚠️ **Sin dashboard visual** - Traefik tenía UI, Caddy solo API local
+ **Dependencia extra** - plugin de terceros (bien mantenido)
+ **Docker socket** - acceso al socket (read-only pero existe)
+ **Debugging más complejo** - config generada dinámicamente
+ **Sin dashboard visual** - Traefik tenía UI, Caddy solo API local
 
 ## Migración desde Static Config
 
@@ -185,7 +185,7 @@ Si preferís volver a configuración estática:
 
 ## Conclusión
 
-**Auto-discovery está habilitado y funcionando** ✅
+**Auto-discovery está habilitado y funcionando** 
 
 Ahora podés levantar servicios nuevos sin tocar Caddy, exactamente como funcionaba con Traefik pero con labels más simples.
 
@@ -195,4 +195,4 @@ Ahora podés levantar servicios nuevos sin tocar Caddy, exactamente como funcion
 3. Esperar 10-30s
 4. Verificar: `curl -I https://mi-servicio.infra.cluster.qb.fcen.uba.ar`
 
-¡Listo! 🎉
+¡Listo! 

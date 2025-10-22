@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   caddy:
     # Using caddy-docker-proxy for automatic service discovery via Docker labels
@@ -40,6 +38,15 @@ services:
     labels:
       # Caddy won't proxy itself
       caddy.enable: "false"
+
+    # Logging driver para capturar TODO en Docker
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "10"
+        labels: "production"
+        tag: "caddy-nodo0"
 
     networks:
       - edge

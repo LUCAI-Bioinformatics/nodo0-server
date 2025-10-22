@@ -49,17 +49,31 @@ Resumen:
 
 ## Scripts y Makefile
 
+### Ciclo de Vida
 - `make network` crea la red externa si no existe.
-- `make up|down|restart|logs` controla el ciclo de vida del proxy.
+- `make up|down|restart` controla el ciclo de vida del proxy.
 - `make validate` valida sintaxis del Caddyfile antes de desplegar.
 - `make check` valida presencia de directorios, Caddyfile y red.
+- `make ps` muestra estado de contenedores.
+
+### Logs (Nivel DEBUG - Intenso)
+- `make logs.debug` - Ver TODO: ACME, errores, discovery, red
+- `make logs.error` - Ver SOLO errores críticos
+- `make logs.acme` - Ver SOLO eventos de certificados/Let's Encrypt
+- `make logs.discovery` - Ver SOLO auto-discovery de contenedores
+- `make logs.live` - Ver logs del contenedor Docker en tiempo real
+- `make monitor` - Dashboard interactivo con estado, errores, recursos
+
+Ver **LOGGING.md** para guía completa de debugging.
+
+### Certificados
 - `make certs.backup` genera backup timestamped de `caddy/data/` en `backups/`.
 - `make certs.restore [FILE=...]` restaura backup (sin FILE usa el más reciente).
 - `make perms` garantiza permisos correctos en directorios de Caddy.
 
 ## Agregar servicios nuevos (Auto-Discovery)
 
-**🚀 Igual que Traefik**: Caddy con `docker-proxy` lee labels Docker y descubre servicios automáticamente. ¡No hay que editar Caddyfile ni reiniciar Caddy!
+** Igual que Traefik**: Caddy con `docker-proxy` lee labels Docker y descubre servicios automáticamente. ¡No hay que editar Caddyfile ni reiniciar Caddy!
 
 ### 1. Conectar servicio a la red
 
@@ -129,23 +143,30 @@ curl -I https://miapp.infra.cluster.qb.fcen.uba.ar
 docker exec caddy_nodo0 caddy config
 ```
 
-## Ejemplo: genphenia-api
+## Ejemplo: Plantilla de Servicio
 
-El directorio `services/genphenia-api/` incluye un ejemplo real de servicio configurado para Caddy:
+El directorio `services/example-service/` incluye una **plantilla completa** con comentarios para agregar nuevos servicios:
 
 ```bash
-cd services/genphenia-api
+# Copiar plantilla
+cp -r services/example-service services/mi-servicio
+cd services/mi-servicio
+
+# Editar docker-compose.yml (ver comentarios en el archivo)
+nano docker-compose.yml
+
+# Levantar
 CADDY_DOCKER_NETWORK=internal-nodo0-web docker compose up -d
 ```
 
-Ver `services/genphenia-api/README.md` para más detalles.
+Ver `services/example-service/README.md` para guía completa de uso.
 
 ## Diferencias clave con Traefik
 
 | Aspecto | Traefik | Caddy + docker-proxy |
 |---------|---------|---------------------|
 | **Configuración** | TOML + labels Docker | Labels Docker (similar) |
-| **Descubrimiento** | Automático (labels) | ✅ Automático (labels) |
+| **Descubrimiento** | Automático (labels) |  Automático (labels) |
 | **Certificados** | `acme.json` (1 archivo) | `caddy/data/` (directorio) |
 | **Dashboard** | Web UI nativo | Admin API (localhost) |
 | **HTTPS redirect** | Middleware config | Automático |
@@ -166,9 +187,9 @@ Ver `services/genphenia-api/README.md` para más detalles.
 
 ## Soporte adicional
 
-- **AUTO_DISCOVERY.md**: Guía completa de auto-discovery con labels Docker (⭐ importante)
-- **CLAUDE.md**: Guía detallada para Claude Code con comandos y arquitectura
-- **MIGRATION.md**: Proceso completo de migración desde Traefik
+- **LOGGING.md**:  Guía completa de logging y debugging (nivel DEBUG habilitado)
+- **AUTO_DISCOVERY.md**: Guía completa de auto-discovery con labels Docker
 - **QUICKSTART.md**: Inicio rápido
-- **services/genphenia-api/**: Ejemplo real de servicio con labels
-- **services/example-service/**: Ejemplo simple (whoami) con labels
+- **MIGRATION.md**: Proceso completo de migración desde Traefik
+- **CLAUDE.md**: Guía detallada para Claude Code con comandos y arquitectura
+- **services/example-service/**:  Plantilla completa para nuevos servicios (con comentarios)

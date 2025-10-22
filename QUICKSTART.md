@@ -75,22 +75,27 @@ curl -I https://genphenia.infra.cluster.qb.fcen.uba.ar
 ## Comandos Más Usados
 
 ```bash
-# Ver logs en tiempo real
-make logs
+# ========== LOGS (DEBUG INTENSO) ==========
+make logs.debug      # Ver TODO: ACME, errores, discovery
+make logs.error      # Ver SOLO errores críticos
+make logs.acme       # Ver SOLO certificados/Let's Encrypt
+make logs.discovery  # Ver SOLO auto-discovery Docker
+make monitor         # Dashboard interactivo
 
-# Reiniciar Caddy (después de cambiar Caddyfile)
-make restart
+# ========== CICLO DE VIDA ==========
+make restart         # Reiniciar Caddy
+make validate        # Validar Caddyfile sin reiniciar
+make ps              # Ver estado
 
-# Validar Caddyfile sin reiniciar
-make validate
+# ========== CERTIFICADOS ==========
+make certs.backup    # Backup de certificados
 
-# Backup de certificados
-make certs.backup
-
-# Ver estado
-make ps
+# ========== INFO ==========
 docker exec caddy_nodo0 caddy version
+docker exec caddy_nodo0 caddy config  # Ver config generada
 ```
+
+Ver **LOGGING.md** para guía completa de debugging.
 
 ## Agregar Tu Primer Servicio
 
@@ -119,36 +124,53 @@ curl -I https://miapp.infra.cluster.qb.fcen.uba.ar
 ### Caddy no arranca
 
 ```bash
-make logs
+# Ver errores críticos
+make logs.error
+
+# Ver logs del contenedor
+make logs.live
+
 # Si ves "permission denied":
 make perms
 make restart
+
+# Validar sintaxis Caddyfile
+make validate
 ```
 
 ### Certificado no se emite
 
 ```bash
+# Ver logs de certificados en tiempo real
+make logs.acme
+
+# Ver si hay errores
+make logs.error | grep -i acme
+
 # Verificar DNS
 dig +short genphenia.infra.cluster.qb.fcen.uba.ar
 
 # Verificar puerto 80 accesible desde internet
 curl -I http://genphenia.infra.cluster.qb.fcen.uba.ar
-
-# Ver logs ACME
-make logs | grep -i acme
 ```
 
 ### Servicio backend no responde
 
 ```bash
+# Ver si Caddy lo detectó
+make logs.discovery | grep nombre-servicio
+
+# Ver errores de proxy
+make logs.error | grep nombre-servicio
+
 # Verificar que el servicio está en la red correcta
 docker network inspect internal-nodo0-web
 
 # Verificar conectividad desde Caddy
 docker exec caddy_nodo0 wget -qO- http://nombre-servicio:8080
 
-# Verificar nombre coincide con docker-compose.yml del servicio
-docker ps | grep nombre-servicio
+# Ver config generada
+docker exec caddy_nodo0 caddy config | grep nombre-servicio
 ```
 
 ### Certificado staging (no confiable)

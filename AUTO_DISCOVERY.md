@@ -8,17 +8,17 @@ Esta guía explica cómo usar el descubrimiento automático de servicios con `ca
 
 ### Ventajas
 
-✅ **Sin restart**: Levantás un contenedor nuevo y Caddy lo detecta automáticamente
-✅ **Tipo Traefik**: Mismo workflow que Traefik con labels
-✅ **Actualización dinámica**: Polling cada 5 segundos detecta cambios
-✅ **HTTPS automático**: Let's Encrypt sin configuración adicional
-✅ **HTTP/3**: Soporte incluido (UDP 443)
+ **Sin restart**: Levantás un contenedor nuevo y Caddy lo detecta automáticamente
+ **Tipo Traefik**: Mismo workflow que Traefik con labels
+ **Actualización dinámica**: Polling cada 5 segundos detecta cambios
+ **HTTPS automático**: Let's Encrypt sin configuración adicional
+ **HTTP/3**: Soporte incluido (UDP 443)
 
 ### Desventajas
 
-⚠️ **Moving parts**: Una dependencia más (plugin vs Caddy vanilla)
-⚠️ **Docker socket**: Requiere acceso a `/var/run/docker.sock` (riesgo de seguridad menor)
-⚠️ **Syntax diferente**: Labels Caddy vs labels Traefik (no son 1:1)
+ **Moving parts**: Una dependencia más (plugin vs Caddy vanilla)
+ **Docker socket**: Requiere acceso a `/var/run/docker.sock` (riesgo de seguridad menor)
+ **Syntax diferente**: Labels Caddy vs labels Traefik (no son 1:1)
 
 ## Configuración Actual
 
@@ -372,14 +372,14 @@ labels:
 
 Caddy tiene acceso de lectura a `/var/run/docker.sock`. Esto es necesario para descubrimiento pero tiene implicaciones:
 
-- ✅ Read-only mount (`:ro`)
-- ⚠️ Puede listar todos los contenedores del host
-- ⚠️ No puede crear/modificar/destruir contenedores (read-only)
+-  Read-only mount (`:ro`)
+-  Puede listar todos los contenedores del host
+-  No puede crear/modificar/destruir contenedores (read-only)
 
 **Mitigación**: En producción, considerar Docker Socket Proxy (containrrr/docker-socket-proxy) que filtra API calls.
 
 ## Siguiente Paso
 
-Ver `services/genphenia-api/` y `services/example-service/` para ejemplos completos con labels.
+Ver `services/example-service/` para plantilla completa con todos los labels comentados y ejemplos de uso.
 
 Para volver a configuración estática, ver `STATIC_CONFIG.md` (próximamente).

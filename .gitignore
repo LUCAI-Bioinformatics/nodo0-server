@@ -2,6 +2,7 @@
 !.env.example
 logs/
 backups/
+diagnostics/
 
 # Traefik (legacy)
 traefik/config/acme.json
@@ -10,3 +11,9 @@ traefik/config/acme.json
 caddy/data/
 caddy/config/
 caddy/logs/
+
+# Claude Code documentation (not needed in production)
+CLAUDE.md
+DEPLOYMENT_SUMMARY.md
+LOGGING_SUMMARY.md
+AUTO_DISCOVERY_SUMMARY.md
