@@ -4,64 +4,51 @@
 [entryPoints]
   [entryPoints.web]
     address = ":80"
-    [entryPoints.web.http.redirections.entryPoint]
-      to = "websecure"
-      scheme = "https"
+    # ❌ Quitar redirección global durante la emisión HTTP-01
+    # [entryPoints.web.http.redirections.entryPoint]
+    #   to = "websecure"
+    #   scheme = "https"
 
   [entryPoints.websecure]
     address = ":443"
-    # Habilita TLS en el entrypoint (requisito para TLS-ALPN-01)
     [entryPoints.websecure.http.tls]
 
   [entryPoints.traefik]
     address = ":8080"
-    
-################################################################
-# Ping (para healthcheck)
-################################################################
+
 [ping]
   entryPoint = "traefik"
 
 ################################################################
-# API / Dashboard (activar solo en debug)
+# Providers (dejá Docker desactivado si querés emitir solo el dashboard)
 ################################################################
-[api]
-  dashboard = true
-  insecure = true   # ← TEMPORAL: luego poner "false" y usar el router @file
-
-################################################################
-# Providers
-################################################################
-# [providers]
-#   [providers.docker]
-#     endpoint = "unix:///var/run/docker.sock"
-#     exposedByDefault = false
-#     watch = true
-    # No uses templating aquí. Si querés fijar una red, hardcodeala;
-    # mejor: usar el label "traefik.docker.network" en cada servicio.
-
+[providers]
+  [providers.docker]
+    endpoint = "unix:///var/run/docker.sock"
+    exposedByDefault = false
+    watch = false
   [providers.file]
     filename = "/etc/traefik/dynamic/dynamic.toml"
     watch = true
 
 ################################################################
-# ACME (Let's Encrypt) - HTTP-01 en el entrypoint "web"
+# ACME (Let's Encrypt) — HTTP-01
 ################################################################
-
 [certificatesResolvers.leresolver.acme]
   email = "mateo@lucai.bio"
   storage = "/acme.json"
   caServer = "https://acme-v02.api.letsencrypt.org/directory"
-  [certificatesResolvers.leresolver.acme.tlsChallenge]
-#   [certificatesResolvers.leresolver.acme.httpChallenge]
-#     entryPoint = "web"
+  [certificatesResolvers.leresolver.acme.httpChallenge]
+    entryPoint = "web"
+  # ❌ Quitar (por ahora) TLS-ALPN-01:
+  # [certificatesResolvers.leresolver.acme.tlsChallenge]
 
 ################################################################
-# Router estático para NO redirigir el challenge (.well-known)
+# Bypass del challenge (prioridad alta, cualquier host)
 ################################################################
-# [http.routers]
-#   [http.routers.acme-http01]
-#     rule = "HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)"
-#     entryPoints = ["web"]
-#     service = "noop@internal"
-#     priority = 1000
+[http.routers]
+  [http.routers.acme-http01]
+    rule = "HostRegexp(`{any:.+}`) && PathPrefix(`/.well-known/acme-challenge/`)"
+    entryPoints = ["web"]
+    service = "noop@internal"
+    priority = 1000
