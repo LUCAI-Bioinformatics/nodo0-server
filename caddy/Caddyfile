@@ -2,8 +2,8 @@
 	# Global options
 	email mateo@lucai.bio
 
-	# Use staging for testing, comment out for production
-	# acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
+	# Use staging for testing to bypass rate limits
+	acme_ca https://acme-staging-v02.api.letsencrypt.org/directory
 
 	# Logging configuration
 	log {
