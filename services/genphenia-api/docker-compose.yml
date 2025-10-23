@@ -1,37 +1,50 @@
-version: "3.9"
-
 networks:
-  edge:
+  web:
     external: true
-    name: ${TRAEFIK_DOCKER_NETWORK}
+    name: internal-nodo0-web
 
 services:
   genphenia-api:
     container_name: genphenia_api_nodo0
     build: .
     image: genphenia-api:latest
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${API_PORT:-8080}
+      HOST: 0.0.0.0
+    expose:
+      - "${API_PORT:-8080}"
     restart: always
-    networks:
-      - edge
+
+    volumes:
+      - ./id_rsa:/root/.ssh/id_rsa:ro
+
     labels:
       - "traefik.enable=true"
-      - "traefik.docker.network=${TRAEFIK_DOCKER_NETWORK}"
+      - "traefik.docker.network=internal-nodo0-web"
 
+      # Service (puerto interno del contenedor)
+      - "traefik.http.services.genphenia-api.loadbalancer.server.port=${API_PORT:-8080}"
+      - "traefik.http.services.genphenia-api.loadbalancer.passhostheader=true"
+
+      # HTTPS
       - "traefik.http.routers.genphenia-api.rule=Host(`genphenia.infra.cluster.qb.fcen.uba.ar`)"
       - "traefik.http.routers.genphenia-api.entrypoints=websecure"
       - "traefik.http.routers.genphenia-api.tls=true"
       - "traefik.http.routers.genphenia-api.tls.certresolver=leresolver"
-      - "traefik.http.services.genphenia-api.loadbalancer.server.port=8080"
+      - "traefik.http.routers.genphenia-api.priority=1000"
+      - "traefik.http.routers.genphenia-api.service=genphenia-api"
 
+      # HTTP → HTTPS
       - "traefik.http.routers.genphenia-api-http.rule=Host(`genphenia.infra.cluster.qb.fcen.uba.ar`)"
       - "traefik.http.routers.genphenia-api-http.entrypoints=web"
-      - "traefik.http.routers.genphenia-api-http.middlewares=https_redirect@file"
+      - "traefik.http.routers.genphenia-api-http.middlewares=genphenia-api-https-redirect"
+      - "traefik.http.routers.genphenia-api-http.priority=1000"
+      - "traefik.http.routers.genphenia-api-http.service=genphenia-api"
+      - "traefik.http.middlewares.genphenia-api-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.genphenia-api-https-redirect.redirectscheme.permanent=true"
 
-    deploy:
-      resources:
-        limits:
-          cpus: '0.50'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
+    networks:
+      - web
